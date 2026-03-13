@@ -36,28 +36,19 @@ class EcommerceCrawler:
             return []
 
         categories = []
-        # Look for category links - they are direct links like /computers, /phones
-        category_selectors = [
-            'a[href*="/computers"]',
-            'a[href*="/phones"]',
-            'a[href="/test-sites/e-commerce/static/computers"]',
-            'a[href="/test-sites/e-commerce/static/phones"]'
-        ]
+        # Look for category links in the sidebar or navigation
+        category_links = soup.select('a[href*="/category/"]')
 
-        seen_urls = set()
-        for selector in category_selectors:
-            links = soup.select(selector)
-            for link in links:
-                href = link.get('href')
-                if href:
-                    full_url = resolve_url(self.base_url, href)
-                    name = link.get_text().strip()
-                    if name and full_url not in seen_urls and full_url != self.base_url:
-                        categories.append({
-                            'name': name,
-                            'url': full_url
-                        })
-                        seen_urls.add(full_url)
+        for link in category_links:
+            href = link.get('href')
+            if href:
+                full_url = resolve_url(self.base_url, href)
+                name = link.get_text().strip()
+                if name and '/category/' in href:
+                    categories.append({
+                        'name': name,
+                        'url': full_url
+                    })
 
         return categories
 
@@ -68,18 +59,15 @@ class EcommerceCrawler:
             return []
 
         subcategories = []
-        # Look for subcategory links - they contain paths like /computers/laptops
-        subcategory_links = soup.select('a[href*="/computers/"], a[href*="/phones/"]')
+        # Look for subcategory links
+        subcategory_links = soup.select('a[href*="/category/"]')
 
         for link in subcategory_links:
             href = link.get('href')
             if href:
                 full_url = resolve_url(self.base_url, href)
                 name = link.get_text().strip()
-                # Only include actual subcategories, not the category itself
-                if (name and
-                    full_url != category_url and
-                    full_url.count('/') > category_url.count('/')):
+                if name and full_url != category_url:  # Avoid self-reference
                     subcategories.append({
                         'name': name,
                         'url': full_url
