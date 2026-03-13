@@ -1,7 +1,3 @@
-"""
-Exporters for generating CSV output files.
-"""
-
 import csv
 from typing import List, Dict
 from collections import defaultdict
@@ -9,21 +5,17 @@ import os
 
 
 class CSVExporter:
-    """Export scraped data to CSV files."""
-
     def __init__(self, output_dir: str = "data"):
         self.output_dir = output_dir
         os.makedirs(output_dir, exist_ok=True)
 
     def export_products(self, products: List[Dict], filename: str = "products.csv"):
-        """Export product data to CSV."""
         filepath = os.path.join(self.output_dir, filename)
 
         if not products:
             print("No products to export")
             return
 
-        # Define CSV headers
         headers = [
             'category', 'subcategory', 'title', 'price', 'url', 'image_url',
             'description', 'reviews', 'specifications', 'page_reference'
@@ -34,21 +26,18 @@ class CSVExporter:
             writer.writeheader()
 
             for product in products:
-                # Ensure all fields exist
                 row = {header: product.get(header, '') for header in headers}
                 writer.writerow(row)
 
         print(f"Exported {len(products)} products to {filepath}")
 
     def export_category_summary(self, products: List[Dict], filename: str = "category_summary.csv"):
-        """Export category summary statistics to CSV."""
         filepath = os.path.join(self.output_dir, filename)
 
         if not products:
             print("No products for summary")
             return
 
-        # Group products by subcategory
         subcategory_stats = defaultdict(lambda: {
             'total_products': 0,
             'prices': [],
@@ -56,7 +45,6 @@ class CSVExporter:
             'duplicates_removed': 0
         })
 
-        # Track seen URLs for deduplication count
         seen_urls = set()
 
         for product in products:
@@ -79,7 +67,6 @@ class CSVExporter:
             else:
                 seen_urls.add(url)
 
-        # Prepare summary data
         summary_data = []
         for subcategory, stats in subcategory_stats.items():
             prices = stats['prices']
@@ -93,10 +80,8 @@ class CSVExporter:
                 'duplicates_removed': stats['duplicates_removed']
             })
 
-        # Sort by subcategory name
         summary_data.sort(key=lambda x: x['subcategory'])
 
-        # Write to CSV
         headers = [
             'subcategory', 'total_products', 'average_price', 'min_price', 'max_price',
             'missing_descriptions', 'duplicates_removed'

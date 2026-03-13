@@ -1,40 +1,28 @@
-"""
-Utility functions for the e-commerce scraper.
-"""
-
 import re
 from urllib.parse import urljoin, urlparse
 
 
 def clean_text(text: str) -> str:
-    """Clean and normalize text by removing extra whitespace."""
     if not text:
         return ""
     return " ".join(text.split()).strip()
 
 
 def normalize_price(price_text: str) -> float:
-    """Extract and normalize price from text."""
     if not price_text:
         return 0.0
 
-    # Remove currency symbols and extra whitespace
     cleaned = re.sub(r'[^\d.,]', '', price_text.strip())
 
-    # Normalize thousand separators and decimal markers.
-    # If both comma and dot exist, determine which is the decimal separator based on position.
     if ',' in cleaned and '.' in cleaned:
         last_comma = cleaned.rfind(',')
         last_dot = cleaned.rfind('.')
         if last_dot > last_comma:
-            # e.g. 1,234.56 -> comma is thousands separator
             cleaned = cleaned.replace(',', '')
         else:
-            # e.g. 1.234,56 -> dot is thousands separator
             cleaned = cleaned.replace('.', '')
             cleaned = cleaned.replace(',', '.')
     elif ',' in cleaned:
-        # Assume comma is decimal separator
         cleaned = cleaned.replace(',', '.')
 
     try:
@@ -44,11 +32,9 @@ def normalize_price(price_text: str) -> float:
 
 
 def resolve_url(base_url: str, relative_url: str) -> str:
-    """Resolve relative URLs to absolute URLs."""
     if not relative_url:
         return ""
 
-    # If already absolute, return as is
     if urlparse(relative_url).scheme:
         return relative_url
 
@@ -56,21 +42,18 @@ def resolve_url(base_url: str, relative_url: str) -> str:
 
 
 def safe_get_text(element, default: str = "") -> str:
-    """Safely get text from a BeautifulSoup element."""
     if element:
         return clean_text(element.get_text())
     return default
 
 
 def safe_get_attr(element, attr: str, default: str = "") -> str:
-    """Safely get attribute from a BeautifulSoup element."""
     if element and element.has_attr(attr):
         return element[attr]
     return default
 
 
 def deduplicate_products(products: list) -> list:
-    """Remove duplicate products based on URL."""
     seen_urls = set()
     unique_products = []
 
@@ -84,7 +67,6 @@ def deduplicate_products(products: list) -> list:
 
 
 def make_request(url: str, session=None, timeout: int = 10):
-    """Make a safe HTTP request with error handling."""
     try:
         if session:
             response = session.get(url, timeout=timeout)
