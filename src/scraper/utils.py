@@ -1,0 +1,92 @@
+"""
+Utility functions for the e-commerce scraper.
+"""
+
+import re
+from urllib.parse import urljoin, urlparse
+
+
+def clean_text(text: str) -> str:
+    """Clean and normalize text by removing extra whitespace."""
+    if not text:
+        return ""
+    return " ".join(text.split()).strip()
+
+
+def normalize_price(price_text: str) -> float:
+    """Extract and normalize price from text."""
+    if not price_text:
+        return 0.0
+
+    # Remove currency symbols and extra whitespace
+    cleaned = re.sub(r'[^\d.,]', '', price_text.strip())
+
+    # Handle European decimal format (comma as decimal separator)
+    if ',' in cleaned and '.' in cleaned:
+        # If both comma and dot exist, assume dot is thousands separator
+        cleaned = cleaned.replace('.', '')
+        cleaned = cleaned.replace(',', '.')
+    elif ',' in cleaned:
+        # Assume comma is decimal separator
+        cleaned = cleaned.replace(',', '.')
+
+    try:
+        return float(cleaned)
+    except ValueError:
+        return 0.0
+
+
+def resolve_url(base_url: str, relative_url: str) -> str:
+    """Resolve relative URLs to absolute URLs."""
+    if not relative_url:
+        return ""
+
+    # If already absolute, return as is
+    if urlparse(relative_url).scheme:
+        return relative_url
+
+    return urljoin(base_url, relative_url)
+
+
+def safe_get_text(element, default: str = "") -> str:
+    """Safely get text from a BeautifulSoup element."""
+    if element:
+        return clean_text(element.get_text())
+    return default
+
+
+def safe_get_attr(element, attr: str, default: str = "") -> str:
+    """Safely get attribute from a BeautifulSoup element."""
+    if element and element.has_attr(attr):
+        return element[attr]
+    return default
+
+
+def deduplicate_products(products: list) -> list:
+    """Remove duplicate products based on URL."""
+    seen_urls = set()
+    unique_products = []
+
+    for product in products:
+        url = product.get('url', '')
+        if url and url not in seen_urls:
+            seen_urls.add(url)
+            unique_products.append(product)
+
+    return unique_products
+
+
+def make_request(url: str, session=None, timeout: int = 10):
+    """Make a safe HTTP request with error handling."""
+    try:
+        if session:
+            response = session.get(url, timeout=timeout)
+        else:
+            import requests
+            response = requests.get(url, timeout=timeout)
+
+        response.raise_for_status()
+        return response
+    except Exception as e:
+        print(f"Error requesting {url}: {e}")
+        return None
