@@ -40,7 +40,7 @@ This will create a virtual environment and install all required packages.
 To run the complete scraping workflow:
 
 ```bash
-uv run python src/main.py
+uv run python main.py
 ```
 
 The scraper will:
