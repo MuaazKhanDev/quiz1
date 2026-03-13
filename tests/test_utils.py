@@ -1,6 +1,6 @@
 import pytest
 
-from src.scraper.utils import normalize_price, resolve_url, deduplicate_products
+from scraper.utils import normalize_price, resolve_url, deduplicate_products
 
 
 def test_normalize_price_usd():

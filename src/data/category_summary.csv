@@ -1,0 +1,4 @@
+subcategory,total_products,average_price,min_price,max_price,missing_descriptions,duplicates_removed
+Laptops,69,749.15,295.99,1799.0,0,0
+Tablets,21,232.04,69.99,603.99,5,0
+Touch,9,400.66,24.99,899.99,9,0

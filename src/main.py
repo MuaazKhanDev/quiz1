@@ -3,10 +3,10 @@ Main entry point for the e-commerce scraper.
 """
 
 import time
-from src.scraper.crawler import EcommerceCrawler
-from src.scraper.parsers import ProductParser, CategoryParser
-from src.scraper.exporters import CSVExporter
-from src.scraper.utils import deduplicate_products
+from scraper.crawler import EcommerceCrawler
+from scraper.parsers import ProductParser, CategoryParser
+from scraper.exporters import CSVExporter
+from scraper.utils import deduplicate_products
 
 
 def main():
