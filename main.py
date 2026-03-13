@@ -20,25 +20,26 @@ def main():
     category_parser = CategoryParser(base_url)
     exporter = CSVExporter()
 
-    # Step 1: Crawl and collect all product URLs
+    # Step 1: Crawl and collect all product URLs with metadata
     print("Phase 1: Discovering products...")
-    product_urls = crawler.crawl_all_products()
-    print(f"Found {len(product_urls)} product URLs")
+    products_metadata = crawler.crawl_all_products()
+    print(f"Found {len(products_metadata)} product URLs")
 
     # Step 2: Parse product detail pages
     print("Phase 2: Parsing product details...")
     products = []
 
-    for i, url in enumerate(product_urls, 1):
-        print(f"Processing product {i}/{len(product_urls)}: {url}")
-
-        # For this implementation, we'll extract category/subcategory from URL structure
-        # In a real scenario, this would be passed from the crawling phase
-        category = "Unknown"
-        subcategory = "Unknown"
+    for i, product_meta in enumerate(products_metadata, 1):
+        url = product_meta['url']
+        category = product_meta['category']
+        subcategory = product_meta['subcategory']
         page_ref = f"page_{i}"
 
-        product_data = product_parser.parse_product_page(url, category, subcategory, page_ref)
+        print(f"Processing product {i}/{len(products_metadata)}: {url}")
+
+        product_data = product_parser.parse_product_page(
+            url, category, subcategory, page_ref
+        )
         if product_data:
             products.append(product_data)
 

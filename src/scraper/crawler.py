@@ -126,9 +126,9 @@ class EcommerceCrawler:
 
         return product_links
 
-    def crawl_all_products(self) -> List[str]:
-        """Crawl all categories, subcategories, and collect product URLs."""
-        all_product_urls = set()
+    def crawl_all_products(self) -> List[Dict]:
+        """Crawl all categories, subcategories, and collect product URLs with metadata."""
+        all_products = []
 
         categories = self.discover_categories()
         print(f"Found {len(categories)} categories")
@@ -148,9 +148,17 @@ class EcommerceCrawler:
                 for page_url in pages:
                     print(f"    Processing page: {page_url}")
                     product_urls = self.collect_product_links(page_url)
-                    all_product_urls.update(product_urls)
+
+                    # Associate each product with category and subcategory
+                    for url in product_urls:
+                        all_products.append({
+                            'url': url,
+                            'category': category['name'],
+                            'subcategory': subcategory['name'],
+                            'page_url': page_url
+                        })
 
                     # Be respectful to the server
                     time.sleep(0.5)
 
-        return list(all_product_urls)
+        return all_products
