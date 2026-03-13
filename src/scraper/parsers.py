@@ -31,30 +31,53 @@ class ProductParser:
             'page_reference': page_ref
         }
 
-        # Product title
-        title_elem = soup.select_one('h1, .product-title, .title')
+        # Product title - look for h1 or title in breadcrumb/structure
+        title_elem = soup.select_one('h1')
+        if not title_elem:
+            # Try to get from URL or other elements
+            title_elem = soup.select_one('.breadcrumb a:last-child, .title')
         product_data['title'] = safe_get_text(title_elem)
 
-        # Price
-        price_elem = soup.select_one('.price, .product-price, [class*="price"]')
+        # Price - look for price with itemprop or specific classes
+        price_elem = soup.select_one('[itemprop="price"]')
+        if not price_elem:
+            price_elem = soup.select_one('.price, [class*="price"]')
         price_text = safe_get_text(price_elem)
         product_data['price'] = normalize_price(price_text)
 
-        # Description
-        desc_elem = soup.select_one('.description, .product-description, [class*="desc"]')
+        # Description - look for description text
+        desc_elem = soup.select_one('.description, p:not(.price)')
+        if not desc_elem:
+            # Look for any paragraph that might contain description
+            paragraphs = soup.select('p')
+            for p in paragraphs:
+                text = safe_get_text(p)
+                if len(text) > 20 and not '$' in text:  # Avoid price paragraphs
+                    desc_elem = p
+                    break
         product_data['description'] = safe_get_text(desc_elem)
 
-        # Image URL
-        img_elem = soup.select_one('img[src*="/img/"], .product-image img')
+        # Image URL - look for product images, not logos
+        img_elem = soup.select_one('img:not([src*="logo"])')
+        if not img_elem:
+            img_elem = soup.select_one('img')
         img_src = safe_get_attr(img_elem, 'src')
         product_data['image_url'] = resolve_url(self.base_url, img_src) if img_src else ""
 
-        # Review count/rating
+        # Review count/rating - look for review information
         review_elem = soup.select_one('.reviews, .rating, [class*="review"], [class*="rating"]')
         product_data['reviews'] = safe_get_text(review_elem)
 
-        # Additional specs/details
-        specs_elem = soup.select_one('.specs, .details, .specifications')
+        # Additional specs/details - look for specifications
+        specs_elem = soup.select_one('.specs, .details, .specifications, .spec')
+        if not specs_elem:
+            # Look for any element that might contain specs
+            specs_candidates = soup.select('.row, .col, div')
+            for candidate in specs_candidates:
+                text = safe_get_text(candidate)
+                if len(text) > 10 and not text.startswith('$'):
+                    specs_elem = candidate
+                    break
         product_data['specifications'] = safe_get_text(specs_elem)
 
         return product_data
