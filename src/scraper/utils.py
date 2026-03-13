@@ -21,11 +21,18 @@ def normalize_price(price_text: str) -> float:
     # Remove currency symbols and extra whitespace
     cleaned = re.sub(r'[^\d.,]', '', price_text.strip())
 
-    # Handle European decimal format (comma as decimal separator)
+    # Normalize thousand separators and decimal markers.
+    # If both comma and dot exist, determine which is the decimal separator based on position.
     if ',' in cleaned and '.' in cleaned:
-        # If both comma and dot exist, assume dot is thousands separator
-        cleaned = cleaned.replace('.', '')
-        cleaned = cleaned.replace(',', '.')
+        last_comma = cleaned.rfind(',')
+        last_dot = cleaned.rfind('.')
+        if last_dot > last_comma:
+            # e.g. 1,234.56 -> comma is thousands separator
+            cleaned = cleaned.replace(',', '')
+        else:
+            # e.g. 1.234,56 -> dot is thousands separator
+            cleaned = cleaned.replace('.', '')
+            cleaned = cleaned.replace(',', '.')
     elif ',' in cleaned:
         # Assume comma is decimal separator
         cleaned = cleaned.replace(',', '.')
